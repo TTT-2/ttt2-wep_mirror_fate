@@ -38,8 +38,6 @@ local mirrorFateModes = {
     {
         name = "explode",
         killFunction = function(victim, killer)
-            print("killing with explosion")
-
             local dmginfo = DamageInfo()
             dmginfo:SetDamage(1000)
             dmginfo:SetAttacker(killer)
@@ -59,7 +57,6 @@ local mirrorFateModes = {
     {
         name = "holy",
         killFunction = function(victim, killer)
-            print("killing with holy")
             local dmginfo = DamageInfo()
             dmginfo:SetDamage(1000)
             dmginfo:SetAttacker(killer)
@@ -82,7 +79,6 @@ local mirrorFateModes = {
     {
         name = "burn",
         killFunction = function(victim, killer)
-            print("killing with burn")
             local dmginfo = DamageInfo()
             dmginfo:SetDamage(5)
             dmginfo:SetAttacker(killer)
@@ -104,7 +100,6 @@ local mirrorFateModes = {
     {
         name = "heart_attack",
         killFunction = function(victim, killer)
-            print("killing with heart attack")
             local dmginfo = DamageInfo()
             dmginfo:SetDamage(1000)
             dmginfo:SetAttacker(killer)
@@ -125,11 +120,17 @@ function SWEP:PrimaryAttack()
         return
     end
 
-    self.mode = (self.mode or 1) + 1
+    local mode = self:GetNWInt("mode", 1)
 
-    if self.mode > #mirrorFateModes then
-        self.mode = 1
+    mode = mode + 1
+
+    if mode > #mirrorFateModes then
+        mode = 1
     end
+
+    self:SetNWInt("mode", mode)
+
+    STATUS:SetActiveIcon(self:GetOwner(), "ttt2_mirrorfate_status_owner", mode)
 end
 
 function SWEP:SecondaryAttack()
@@ -137,19 +138,41 @@ function SWEP:SecondaryAttack()
         return
     end
 
-    self.time = (self.time or 30) + 10
+    local time = self:GetNWInt("time", 30)
 
-    if self.time > 60 then
-        self.time = 30
+    time = time + 10
+
+    if time > 60 then
+        time = 30
     end
+
+    self:SetNWInt("time", time)
+end
+
+function SWEP:Initialize()
+    if SERVER then
+        self:SetNWInt("mode", math.random(1, #mirrorFateModes))
+        self:SetNWInt("time", 30)
+
+        timer.Simple(0, function()
+            if not IsValid(self) then
+                return
+            end
+
+            STATUS:AddStatus(
+                self:GetOwner(),
+                "ttt2_mirrorfate_status_owner",
+                self:GetNWInt("mode", 1)
+            )
+        end)
+    else
+        self:AddTTT2HUDHelp("mirrorfate_help_primary", "mirrorfate_help_secondary")
+    end
+
+    self.BaseClass.Initialize(self)
 end
 
 if SERVER then
-    function SWEP:WasBought(buyer)
-        self.mode = math.random(1, #mirrorFateModes)
-        self.time = 30
-    end
-
     hook.Add("DoPlayerDeath", "MirrorfateKillhim", function(victim, killer, damageinfo)
         if
             not IsValid(killer)
@@ -161,8 +184,8 @@ if SERVER then
         end
 
         local wepMirrorFate = victim:GetWeapon("weapon_ttt_mirrorfate")
-        local time = wepMirrorFate.time or 30
-        local mode = wepMirrorFate.mode or 1
+        local time = wepMirrorFate:GetNWInt("time", 30)
+        local mode = wepMirrorFate:GetNWInt("mode", 1)
 
         -- start the mirror fate timer
         timer.Create("TTT2Mirrorfate" .. killer:EntIndex(), time, 1, function()
@@ -193,9 +216,35 @@ if SERVER then
 end
 
 if CLIENT then
-    function SWEP:Initialize()
-        self:AddTTT2HUDHelp("mirrorfate_help_primary", "mirrorfate_help_secondary")
-
-        self.BaseClass.Initialize(self)
+    function SWEP:OnRemove()
+        STATUS:RemoveStatus("ttt2_mirrorfate_status_owner")
     end
+
+    hook.Add("TTT2FinishedLoading", "TTT2InitMirrorfateStatus", function()
+        STATUS:RegisterStatus("ttt2_mirrorfate_status_owner", {
+            hud = {
+                Material("vgui/ttt/perks/hud_explode.png"),
+                Material("vgui/ttt/perks/hud_holy.png"),
+                Material("vgui/ttt/perks/hud_burn.png"),
+                Material("vgui/ttt/perks/hud_heart_attack.png"),
+            },
+            type = "good",
+            name = {
+                "weapon_mirrorfate_explode",
+                "weapon_mirrorfate_holy",
+                "weapon_mirrorfate_burn",
+                "weapon_mirrorfate_heart_attack",
+            },
+            sidebarDescription = "weapon_mirrorfate_sidebar",
+            DrawInfo = function()
+                local wepMirrorFate = LocalPlayer():GetWeapon("weapon_ttt_mirrorfate")
+
+                if not IsValid(wepMirrorFate) then
+                    return
+                end
+
+                return tostring(wepMirrorFate:GetNWInt("time", 30)) .. "s"
+            end,
+        })
+    end)
 end
