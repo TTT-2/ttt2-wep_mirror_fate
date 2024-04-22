@@ -1,0 +1,14 @@
+"VertexLitGeneric"
+{
+	$baseTexture "models/weapons/w_models/watch/WatchDiff.vtf"
+
+	"$phong" "1"
+	"$phongexponent" "100"
+	"$phongboost" "3"	
+	"$phongfresnelranges"	"[.25 .5 1]"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"	
+	"$rimlightboost" "1"
+}

@@ -10,12 +10,8 @@ if CLIENT then
     SWEP.PrintName = "weapon_mirrorfate_name"
     SWEP.Slot = 7
 
-    SWEP.ViewModelFOV = 70
+    SWEP.ViewModelFOV = 100
     SWEP.ViewModelFlip = false
-
-    SWEP.UseHands = true
-    SWEP.ShowDefaultViewModel = false
-    SWEP.ShowDefaultWorldModel = false
 
     SWEP.EquipMenuData = {
         type = "item_weapon",
@@ -129,7 +125,7 @@ function SWEP:PrimaryAttack()
         return
     end
 
-    self.mode = self.mode + 1
+    self.mode = (self.mode or 1) + 1
 
     if self.mode > #mirrorFateModes then
         self.mode = 1
@@ -141,7 +137,7 @@ function SWEP:SecondaryAttack()
         return
     end
 
-    self.time = self.time + 10
+    self.time = (self.time or 30) + 10
 
     if self.time > 60 then
         self.time = 30
@@ -194,4 +190,12 @@ if SERVER then
             ResetMirrorFate(plys[i])
         end
     end)
+end
+
+if CLIENT then
+    function SWEP:Initialize()
+        self:AddTTT2HUDHelp("mirrorfate_help_primary", "mirrorfate_help_secondary")
+
+        self.BaseClass.Initialize(self)
+    end
 end

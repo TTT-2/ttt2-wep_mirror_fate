@@ -8,9 +8,6 @@
 	"$phongfresnelranges"	"[.25 .5 1]"
 	"$basemapalphaphongmask" "1"
 
-	"$lightwarptexture" "models\weapons\c_items/c_pocket_watch_lightwarp"
-	"$phongwarptexture"  "models\weapons\c_items/c_pocket_watch_phongwarp"
-
 	"$rimlight" "1"
 	"$rimlightexponent" "4"	
 	"$rimlightboost" "1"
