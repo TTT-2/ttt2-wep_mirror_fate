@@ -183,19 +183,50 @@ if SERVER then
             return
         end
 
-        local wepMirrorFate = victim:GetWeapon("weapon_ttt_mirrorfate")
-        local time = wepMirrorFate:GetNWInt("time", 30)
-        local mode = wepMirrorFate:GetNWInt("mode", 1)
+        -- only continue if the killer doesn't own mirror fate as well
+        if not killer:HasWeapon("weapon_ttt_mirrorfate") then
+            local wepMirrorFate = victim:GetWeapon("weapon_ttt_mirrorfate")
+            local time = wepMirrorFate:GetNWInt("time", 30)
+            local mode = wepMirrorFate:GetNWInt("mode", 1)
 
-        -- start the mirror fate timer
-        timer.Create("TTT2Mirrorfate" .. killer:EntIndex(), time, 1, function()
-            if not IsValid(killer) then
-                return
-            end
+            -- start the mirror fate timer
+            timer.Create("TTT2Mirrorfate" .. killer:EntIndex(), time, 1, function()
+                if not IsValid(killer) then
+                    return
+                end
 
-            -- note victim and killer are reversed here as it is a revenge kill
-            mirrorFateModes[mode].killFunction(killer, victim)
-        end)
+                STATUS:RemoveStatus(killer, "ttt2_mirrorfate_status_victim")
+
+                -- if the killer (the new victim) owns the mirror fate equipment, the kill won't happen
+                if killer:HasWeapon("weapon_ttt_mirrorfate") then
+                    EPOP:AddMessage(
+                        victim,
+                        "weapon_mirrorfate_failed_title",
+                        "weapon_mirrorfate_failed_subtitle"
+                    )
+
+                    return
+                end
+
+                -- don't kill a dead player
+                if not IsTerror(killer) then
+                    return
+                end
+
+                -- note victim and killer are reversed here as it is a revenge kill
+                mirrorFateModes[mode].killFunction(killer, victim)
+            end)
+
+            STATUS:AddStatus(killer, "ttt2_mirrorfate_status_victim")
+        end
+    end)
+
+    hook.Add("TTT2OrderedEquipment", "TTT2MirrorFateBought", function(ply, equipmentName)
+        if equipmentName ~= "weapon_ttt_mirrorfate" then
+            return
+        end
+
+        STATUS:RemoveStatus(ply, "ttt2_mirrorfate_status_victim")
     end)
 
     local function ResetMirrorFate(ply)
@@ -223,10 +254,10 @@ if CLIENT then
     hook.Add("TTT2FinishedLoading", "TTT2InitMirrorfateStatus", function()
         STATUS:RegisterStatus("ttt2_mirrorfate_status_owner", {
             hud = {
-                Material("vgui/ttt/perks/hud_explode.png"),
-                Material("vgui/ttt/perks/hud_holy.png"),
-                Material("vgui/ttt/perks/hud_burn.png"),
-                Material("vgui/ttt/perks/hud_heart_attack.png"),
+                Material("vgui/ttt/perks/hud_mirrorfate_explode.png"),
+                Material("vgui/ttt/perks/hud_mirrorfate_holy.png"),
+                Material("vgui/ttt/perks/hud_mirrorfate_burn.png"),
+                Material("vgui/ttt/perks/hud_mirrorfate_heart_attack.png"),
             },
             type = "good",
             name = {
@@ -245,6 +276,17 @@ if CLIENT then
 
                 return tostring(wepMirrorFate:GetNWInt("time", 30)) .. "s"
             end,
+        })
+
+        STATUS:RegisterStatus("ttt2_mirrorfate_status_victim", {
+            hud = {
+                Material("vgui/ttt/perks/hud_mirrorfate.png"),
+            },
+            type = "bad",
+            name = {
+                "weapon_mirrorfate_victim",
+            },
+            sidebarDescription = "weapon_mirrorfate_sidebar_victim",
         })
     end)
 end
