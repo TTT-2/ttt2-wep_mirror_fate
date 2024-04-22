@@ -1,6 +1,6 @@
 "UnlitGeneric"
 {
- "$basetexture" "vgui/ttt/icon_timer"
+ "$basetexture" "vgui/ttt/icon_mirrorfate"
  "$vertexcolor" 1
  "$vertexalpha" 1
  "$translucent" 1

@@ -19,7 +19,7 @@ if CLIENT then
         desc = "weapon_mirrorfate_desc",
     }
 
-    SWEP.Icon = "vgui/ttt/icon_mirror_fate"
+    SWEP.Icon = "vgui/ttt/icon_mirrorfate"
 end
 
 SWEP.Base = "weapon_tttbase"
@@ -27,6 +27,8 @@ SWEP.Base = "weapon_tttbase"
 SWEP.Kind = WEAPON_EQUIP2
 SWEP.CanBuy = { ROLE_TRAITOR, ROLE_DETECTIVE }
 SWEP.LimitedStock = true
+
+SWEP.AllowDrop = false
 
 SWEP.Spawnable = false
 SWEP.AdminSpawnable = false
@@ -111,10 +113,6 @@ local mirrorFateModes = {
     },
 }
 
-function SWEP:OnDrop()
-    self:Remove()
-end
-
 function SWEP:PrimaryAttack()
     if CLIENT then
         return
@@ -173,6 +171,10 @@ function SWEP:Initialize()
 end
 
 if SERVER then
+    function SWEP:OnDrop()
+        self:Remove()
+    end
+
     hook.Add("DoPlayerDeath", "MirrorfateKillhim", function(victim, killer, damageinfo)
         if
             not IsValid(killer)
