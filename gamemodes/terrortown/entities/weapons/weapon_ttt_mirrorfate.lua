@@ -211,7 +211,7 @@ if SERVER then
                 end
 
                 -- don't kill a dead player
-                if not IsTerror(killer) then
+                if not killer:IsTerror() then
                     return
                 end
 
